@@ -1,39 +1,50 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import dynamic from "next/dynamic";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import {
+  Upload,
+  Box,
+  QrCode,
+  ArrowLeft,
+  Trash2,
+  ExternalLink,
+  Download,
+  ChevronRight,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
-// Require ModelViewer dynamically to avoid SSR document is not defined
-// Also standard Next.js doesn't natively recognize model-viewer in TS without module declaration,
-// but we just render it or use the component we made.
-import { ModelViewerAR } from "@/components/interaction/ModelViewerAR";
+type Item = {
+  id: string;
+  title: string;
+  description: string | null;
+  fileUrl: string;
+  qrCodeUrl: string | null;
+  createdAt: string;
+};
+
+type UploadStatus = "idle" | "uploading" | "success" | "error";
 
 export default function AdminItemsPage() {
-  type Item = {
-    id: string;
-    title: string;
-    description: string;
-    fileUrl: string;
-    qrCodeUrl: string;
-  };
   const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState<{ type: string; text: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
+  const [uploadMsg, setUploadMsg] = useState("");
+  const [fileName, setFileName] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const fetchItems = async () => {
-    setLoading(true);
     try {
       const res = await fetch("/api/items");
       const data = await res.json();
-      if (data.items) {
-        setItems(data.items);
-      }
+      if (data.items) setItems(data.items);
     } catch (e) {
-      console.error("Failed to fetch items", e);
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -42,177 +53,254 @@ export default function AdminItemsPage() {
 
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setUploading(true);
-    setMessage(null);
-    
+    setUploadStatus("uploading");
+    setUploadMsg("");
+
     const formData = new FormData(e.currentTarget);
     try {
-      const res = await fetch("/api/items", { 
-        method: "POST", 
-        body: formData 
-      });
+      const res = await fetch("/api/items", { method: "POST", body: formData });
       const data = await res.json();
-      
+
       if (res.ok && data.item) {
-        setItems([data.item, ...items]);
-        setMessage({ type: "success", text: "Berhasil mengupload model dan QR code telah digenerate!" });
-        (e.target as HTMLFormElement).reset();
+        setItems((prev) => [data.item, ...prev]);
+        setUploadStatus("success");
+        setUploadMsg("Artefak berhasil diarsipkan & QR digenerate.");
+        setFileName(null);
+        formRef.current?.reset();
+        setTimeout(() => setUploadStatus("idle"), 4000);
       } else {
-        setMessage({ type: "error", text: data.error || "Gagal mengupload model!" });
+        setUploadStatus("error");
+        setUploadMsg(data.error || "Gagal mengupload.");
       }
-    } catch (error) {
-      setMessage({ type: "error", text: "Terjadi kesalahan sistem saat upload." });
-    } finally {
-      setUploading(false);
+    } catch {
+      setUploadStatus("error");
+      setUploadMsg("Koneksi gagal. Coba lagi.");
     }
   };
 
+  const formatDate = (iso: string) =>
+    new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(
+      new Date(iso)
+    );
+
+  const withQR = items.filter((i) => i.qrCodeUrl).length;
+  const recent = items.filter(
+    (i) => Date.now() - new Date(i.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+  ).length;
+
   return (
-    <div className="min-h-screen bg-slate-50 p-8 pt-24 font-sans text-slate-900">
-      <div className="max-w-6xl mx-auto space-y-10">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Manajemen 3D Items</h1>
-            <p className="text-slate-500 mt-2">Kelola data model 3D dan QR code scanner museum.</p>
-          </div>
-        </header>
+    <div className="min-h-full bg-[#f7f7f5] dark:bg-[#080808] text-neutral-900 dark:text-neutral-100 font-sans">
+      <div className="max-w-6xl mx-auto px-6 md:px-10 py-8 space-y-8">
 
-        {/* Upload Form */}
-        <div className="bg-white rounded-2xl shadow-sm border p-6 md:p-8">
-          <h2 className="text-xl font-semibold mb-6 flex items-center">
-            <svg className="w-5 h-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            Upload Koleksi Baru
-          </h2>
-          
-          {message && (
-            <div className={`p-4 mb-6 rounded-lg text-sm font-medium ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-              {message.text}
-            </div>
-          )}
-
-          <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-slate-700">Nama/Judul Koleksi *</label>
-                <input 
-                  required 
-                  name="title" 
-                  type="text"
-                  placeholder="Contoh: Tyrannosaurus Rex" 
-                  className="w-full h-11 px-4 rounded-xl border-slate-200 border bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                />
+        {/* ── Stats Row ── */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            {
+              label: "Total Artefak",
+              value: loading ? "—" : items.length,
+              icon: <Box className="w-5 h-5" />,
+              color: "text-blue-500",
+              bg: "bg-blue-500/8 dark:bg-blue-500/10",
+            },
+            {
+              label: "QR Digenerate",
+              value: loading ? "—" : withQR,
+              icon: <QrCode className="w-5 h-5" />,
+              color: "text-emerald-500",
+              bg: "bg-emerald-500/8 dark:bg-emerald-500/10",
+            },
+            {
+              label: "Ditambah Minggu Ini",
+              value: loading ? "—" : recent,
+              icon: <Clock className="w-5 h-5" />,
+              color: "text-violet-500",
+              bg: "bg-violet-500/8 dark:bg-violet-500/10",
+            },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="bg-white dark:bg-white/4 border border-neutral-200/60 dark:border-white/6 rounded-2xl p-5 flex items-center gap-4"
+            >
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.color} ${s.bg}`}>
+                {s.icon}
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2 text-slate-700">Deskripsi Singkat</label>
-                <textarea 
-                  name="description" 
-                  rows={4}
-                  placeholder="Informasi detail mengenai koleksi..." 
-                  className="w-full p-4 rounded-xl border-slate-200 border bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm resize-none"
-                />
+                <p className="text-2xl font-bold tabular-nums">{s.value}</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">{s.label}</p>
               </div>
             </div>
-
-            <div className="flex flex-col h-full space-y-4">
-              <div className="flex-1 flex flex-col justify-center">
-                <label className="block text-sm font-semibold mb-2 text-slate-700">File 3D (.glb) *</label>
-                <div className="relative border-2 border-dashed border-slate-300 rounded-2xl h-full flex flex-col items-center justify-center p-6 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group">
-                  <input 
-                    required 
-                    type="file" 
-                    name="file" 
-                    accept=".glb" 
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  />
-                  <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-                    </svg>
-                  </div>
-                  <span className="text-sm font-medium text-slate-600">Klik / Tarik file .glb kesini</span>
-                  <span className="text-xs text-slate-400 mt-1 text-center">Maks ukuran sesuai Cloudinary</span>
-                </div>
-              </div>
-              <Button type="submit" disabled={uploading} className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-[0.95rem]">
-                {uploading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> 
-                    Mengupload & Generating QR...
-                  </span>
-                ) : "Upload & Generate QR Code"}
-              </Button>
-            </div>
-          </form>
+          ))}
         </div>
 
-        {/* List Items */}
-        <div>
-          <h2 className="text-xl font-semibold mb-6">Database Koleksi 3D</h2>
-          {loading ? (
-            <div className="text-center py-20 text-slate-500 animate-pulse font-medium">Memuat data koleksi...</div>
-          ) : items.length === 0 ? (
-            <div className="text-center py-20 bg-white border border-dashed rounded-2xl text-slate-500 font-medium">Belum ada koleksi 3D. Upload sekarang!</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {items.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
-                  {/* 3D Viewer */}
-                  <div className="h-56 relative bg-gradient-to-b from-slate-100 to-slate-50 flex items-center justify-center p-4">
-                    <div className="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur text-xs font-semibold px-2 py-1 rounded-md text-slate-600 border shadow-sm">
-                      3D Preview
-                    </div>
-                    {/* model-viewer in admin page */}
-                    {item.fileUrl && (
-                      <div className="w-full h-full relative" style={{ isolation: "isolate" }}>
-                        {/* {React.createElement("model-viewer", { src: item.fileUrl, "auto-rotate": true, "camera-controls": true, style: { width: "100%", height: "100%" } })} 
-                            Wait, we can reuse ModelViewerAR here instead! 
-                        */}
-                        <ModelViewerAR src={item.fileUrl} />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Content Info */}
-                  <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="font-bold text-lg text-slate-900 mb-2 truncate">{item.title}</h3>
-                    <p className="text-sm text-slate-500 mb-6 line-clamp-2 leading-relaxed flex-1">
-                      {item.description || "Tidak ada deskripsi"}
-                    </p>
-                    
-                    {/* QR Code Section */}
-                    {item.qrCodeUrl && (
-                      <div className="mt-auto p-4 bg-slate-50 rounded-xl border text-center flex justify-between items-center group cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                        <div className="flex items-center gap-4 text-left">
-                          <img 
-                            src={item.qrCodeUrl} 
-                            alt={`QR for ${item.title}`} 
-                            className="w-14 h-14 object-contain rounded-md bg-white border p-1"
-                          />
-                          <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 group-hover:text-blue-500 transition-colors">QR Scanner</p>
-                            <p className="text-sm font-semibold text-slate-700">Scan & View in AR</p>
-                          </div>
-                        </div>
-                        <a 
-                          href={item.qrCodeUrl} 
-                          download={`QR-${item.title}.png`}
-                          target="_blank"
-                          rel="noreferrer" 
-                          className="w-10 h-10 rounded-full bg-white border shadow-sm flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
-                        >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                        </a>
-                      </div>
-                    )}
-                  </div>
+        {/* ── Two Column Layout ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+          {/* Upload Form (2 cols) */}
+          <div className="lg:col-span-2">
+            <div className="bg-white dark:bg-white/4 border border-neutral-200/60 dark:border-white/6 rounded-2xl p-6 sticky top-24">
+              <h2 className="text-base font-bold mb-1 flex items-center gap-2">
+                <Upload className="w-4 h-4 text-blue-500" />
+                Upload Artefak Baru
+              </h2>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-6">
+                Upload file .glb dan sistem akan generate QR secara otomatis.
+              </p>
+
+              {/* Status Banner */}
+              {uploadStatus !== "idle" && (
+                <div
+                  className={`flex items-center gap-2.5 text-sm p-3.5 rounded-xl mb-5 font-medium ${
+                    uploadStatus === "success"
+                      ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
+                      : uploadStatus === "error"
+                      ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20"
+                      : "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20"
+                  }`}
+                >
+                  {uploadStatus === "success" && <CheckCircle2 className="w-4 h-4 flex-shrink-0" />}
+                  {uploadStatus === "error" && <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+                  {uploadStatus === "uploading" && (
+                    <div className="w-4 h-4 rounded-full border-2 border-current/30 border-t-current animate-spin flex-shrink-0" />
+                  )}
+                  {uploadStatus === "uploading" ? "Memproses & mengupload artefak..." : uploadMsg}
                 </div>
-              ))}
+              )}
+
+              <form ref={formRef} onSubmit={handleUpload} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-2 uppercase tracking-wider">
+                    Nama Artefak *
+                  </label>
+                  <input
+                    required
+                    name="title"
+                    type="text"
+                    placeholder="Contoh: Fosil Pterodactyl"
+                    className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-white/8 bg-neutral-50 dark:bg-white/5 focus:bg-white dark:focus:bg-white/8 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all text-sm placeholder:text-neutral-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-2 uppercase tracking-wider">
+                    Deskripsi
+                  </label>
+                  <textarea
+                    name="description"
+                    rows={3}
+                    placeholder="Kisah di balik koleksi ini..."
+                    className="w-full p-3.5 rounded-xl border border-neutral-200 dark:border-white/8 bg-neutral-50 dark:bg-white/5 focus:bg-white dark:focus:bg-white/8 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all text-sm resize-none placeholder:text-neutral-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400 mb-2 uppercase tracking-wider">
+                    File 3D (.glb) *
+                  </label>
+                  <label className="relative flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 dark:border-white/10 rounded-xl p-6 cursor-pointer hover:border-blue-400 dark:hover:border-blue-400/50 transition-colors group bg-neutral-50/50 dark:bg-white/3">
+                    <input
+                      required
+                      type="file"
+                      name="file"
+                      accept=".glb"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+                    />
+                    <Box className="w-8 h-8 text-neutral-400 dark:text-neutral-600 mb-2 group-hover:text-blue-400 transition-colors" />
+                    <span className="text-sm font-medium text-center text-neutral-500 dark:text-neutral-400">
+                      {fileName ? (
+                        <span className="text-blue-500 font-semibold">{fileName}</span>
+                      ) : (
+                        "Klik untuk pilih file .glb"
+                      )}
+                    </span>
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={uploadStatus === "uploading"}
+                  className="w-full h-11 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl font-semibold text-sm hover:bg-neutral-700 dark:hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {uploadStatus === "uploading" ? "Memproses..." : "Upload & Generate QR"}
+                </button>
+              </form>
             </div>
-          )}
+          </div>
+
+          {/* Artifact Table (3 cols) */}
+          <div className="lg:col-span-3">
+            <div className="bg-white dark:bg-white/4 border border-neutral-200/60 dark:border-white/6 rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-neutral-100 dark:border-white/5 flex items-center justify-between">
+                <h2 className="text-base font-bold">Daftar Koleksi</h2>
+                <span className="text-xs font-mono text-neutral-400 bg-neutral-100 dark:bg-white/6 px-2.5 py-1 rounded-full">
+                  {items.length} item
+                </span>
+              </div>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="w-7 h-7 border-2 border-neutral-200 dark:border-white/10 border-t-blue-500 rounded-full animate-spin" />
+                </div>
+              ) : items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 text-neutral-400">
+                  <Box className="w-10 h-10 opacity-30" />
+                  <p className="text-sm font-medium">Belum ada koleksi. Upload sekarang!</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-neutral-100 dark:divide-white/5">
+                  {items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-neutral-50 dark:hover:bg-white/3 transition-colors group"
+                    >
+                      {/* QR Thumbnail */}
+                      <div className="w-12 h-12 flex-shrink-0 rounded-xl border border-neutral-200 dark:border-white/8 bg-neutral-100 dark:bg-white/5 flex items-center justify-center overflow-hidden">
+                        {item.qrCodeUrl ? (
+                          <img src={item.qrCodeUrl} alt="QR" className="w-full h-full object-cover" />
+                        ) : (
+                          <QrCode className="w-5 h-5 text-neutral-400" />
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{item.title}</p>
+                        <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">
+                          {formatDate(item.createdAt)}
+                          {!item.qrCodeUrl && (
+                            <span className="ml-2 text-amber-500 font-medium">· No QR</span>
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {item.qrCodeUrl && (
+                          <a
+                            href={item.qrCodeUrl}
+                            download
+                            title="Download QR"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/8 hover:text-neutral-900 dark:hover:text-white transition-all"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
+                        )}
+                        <Link
+                          href={`/item/${item.id}`}
+                          title="Lihat Detail"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/8 hover:text-neutral-900 dark:hover:text-white transition-all"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Link>
+                      </div>
+
+                      <ChevronRight className="w-4 h-4 text-neutral-300 dark:text-white/20 flex-shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

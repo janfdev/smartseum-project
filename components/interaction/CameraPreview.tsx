@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Camera, CameraOff, SwitchCamera } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { CameraOff, SwitchCamera } from "lucide-react";
 
 export const CameraPreview = ({ isPaused }: { isPaused?: boolean }) => {
   const videoRef = useRef<HTMLVideoElement>(null);

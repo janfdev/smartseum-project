@@ -100,7 +100,7 @@ export default function MuseumSection() {
             className="pt-6 flex justify-center lg:justify-start"
           >
             <Link
-              href="/interaction"
+              href="/scan"
               className="group inline-flex items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 transition-all font-medium px-8 py-3.5"
             >
               Coba Simulasi QR

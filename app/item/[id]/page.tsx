@@ -1,93 +1,147 @@
+import React from "react";
 import { db } from "@/lib/db";
 import { items } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { ModelViewerAR } from "@/components/interaction/ModelViewerAR";
 import Link from "next/link";
+import { ArrowLeft, Download } from "lucide-react";
+import { ModelViewer } from "@/components/artifact/ModelViewer";
 
 export default async function ItemDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
 
   const itemData = await db.select().from(items).where(eq(items.id, id));
-  
-  if (itemData.length === 0) {
-    notFound();
-  }
+
+  if (itemData.length === 0) notFound();
 
   const item = itemData[0];
+  const year = new Date(item.createdAt).getFullYear();
+  const shortId = item.id.split("-").pop()?.toUpperCase() ?? item.id;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      {/* 3D Header Section */}
-      <div className="w-full h-[55vh] min-h-[450px] relative overflow-hidden bg-gradient-to-b from-slate-200 to-slate-100 shadow-inner">
-        <Link 
-          href="/scan" 
-          className="absolute top-6 left-6 z-[60] bg-white/60 backdrop-blur-md px-5 py-2.5 rounded-full text-[0.9rem] font-semibold flex items-center gap-2 hover:bg-white transition-all border border-slate-200 shadow-sm text-slate-800 hover:scale-105"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Kembali ke Scan
-        </Link>
-        
-        {/* Decorative background grid */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(#000 1px, transparent 1px)", backgroundSize: "24px 24px" }}></div>
-        
-        {/* Model AR rendered absolute within this relative div */}
-        <div className="absolute inset-0 w-full h-full" style={{ isolation: "isolate" }}>
-          <ModelViewerAR src={item.fileUrl} />
-        </div>
-        
-        {/* Tooltip hint floating */}
-        <div className="absolute bottom-16 right-6 z-[60] bg-white/80 backdrop-blur px-4 py-2 rounded-xl border shadow-sm flex items-center gap-3 animate-pulse">
-           <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-           </svg>
-           <span className="text-xs font-semibold text-slate-700">Geser untuk memutar 3D</span>
-        </div>
-      </div>
+    <main className="min-h-screen bg-[#0a0a0a] text-white font-sans">
 
-      {/* Details Section */}
-      <div className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-12 -mt-10 relative z-[70]">
-        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100/50 backdrop-blur-3xl">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="inline-block bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-blue-200">
-              Koleksi Museum
-            </div>
-            {item.qrCodeUrl && (
-               <a href={item.qrCodeUrl} download className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors bg-slate-50 px-3 py-1 rounded-full border">
-                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                 QR Code
-               </a>
-            )}
-          </div>
-          
-          <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-8 leading-[1.15]">
+      {/* ─── FLOATING NAV ─── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-5">
+        <Link
+          href="/scan"
+          className="group flex items-center gap-2.5 text-white/60 hover:text-white transition-colors text-sm font-medium"
+        >
+          <span className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center group-hover:border-white/30 group-hover:bg-white/10 transition-all">
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+          </span>
+          Kembali
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs text-white/40 font-mono uppercase tracking-[0.15em]">
+            #{shortId}
+          </span>
+        </div>
+      </nav>
+
+      {/* ─── HERO 3D VIEWER – Full Width ─── */}
+      <section className="relative w-full" style={{ height: "70vh", minHeight: 480 }}>
+        {/* Gradient floor */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/0 via-transparent to-[#0a0a0a] z-10 pointer-events-none" />
+        {/* Side vignettes */}
+        <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
+
+        <div className="absolute inset-0">
+          <ModelViewer modelUrl={item.fileUrl} />
+        </div>
+      </section>
+
+      {/* ─── CONTENT BODY ─── */}
+      <article className="relative z-20 -mt-4 max-w-5xl mx-auto px-6 md:px-10 pb-24">
+
+        {/* Title area */}
+        <header className="mb-12">
+          <p className="text-xs tracking-[0.25em] uppercase text-white/35 font-mono mb-4">
+            Koleksi Museum · {year}
+          </p>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.0] text-white mb-6">
             {item.title}
           </h1>
-          <div className="w-12 h-1.5 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full mb-8"></div>
-          
-          <div className="prose prose-slate lg:prose-lg max-w-none">
-            {item.description ? (
-              <p className="whitespace-pre-wrap text-slate-600 leading-relaxed font-medium text-[1.05rem]">
-                {item.description}
-              </p>
-            ) : (
-              <p className="italic text-slate-400 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                Informasi detail mengenai koleksi ini sedang disiapkan oleh kurator museum.
-              </p>
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              Terverifikasi
+            </span>
+            {item.qrCodeUrl && (
+              <a
+                href={item.qrCodeUrl}
+                download
+                className="inline-flex items-center gap-1.5 text-xs font-semibold border border-white/10 text-white/40 hover:text-white hover:border-white/30 px-3 py-1.5 rounded-full transition-all"
+              >
+                <Download className="w-3 h-3" />
+                QR Code
+              </a>
             )}
           </div>
+        </header>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 mb-12">
+          <div className="flex-1 h-px bg-white/8" />
+          <span className="text-white/20 font-mono text-[10px] tracking-widest uppercase">Analisis</span>
+          <div className="flex-1 h-px bg-white/8" />
         </div>
-        
-        {/* Footer Area */}
-        <div className="mt-12 text-center text-sm font-medium text-slate-400 pb-8 flex items-center justify-center gap-2">
-           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-           </svg>
-           SmartSeum AR Interactive System
+
+        {/* Description + Meta Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
+          {/* Description */}
+          <div className="md:col-span-2">
+            <p className="text-white/70 text-xl md:text-2xl leading-relaxed font-light">
+              {item.description
+                ? item.description
+                : "Identifikasi mendalam terhadap objek ini sedang dalam proses penelitian lanjutan oleh tim kurator museum."}
+            </p>
+          </div>
+
+          {/* Meta sidebar */}
+          <div className="flex flex-col gap-6 md:border-l md:border-white/8 md:pl-10">
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/25 mb-2">
+                Tahun Dicatat
+              </p>
+              <p className="text-white text-2xl font-semibold tabular-nums">{year}</p>
+            </div>
+            <div className="h-px bg-white/8 hidden md:block" />
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/25 mb-2">
+                Kategori
+              </p>
+              <p className="text-white/70 text-base font-medium">Koleksi 3D</p>
+            </div>
+            <div className="h-px bg-white/8 hidden md:block" />
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/25 mb-2">
+                ID Rekaman
+              </p>
+              <p className="text-white/40 text-xs font-mono break-all">{item.id}</p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+
+        {/* ─── BOTTOM ACTION ─── */}
+        <div className="mt-20 pt-10 border-t border-white/8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div>
+            <p className="text-white/25 text-xs font-mono uppercase tracking-widest mb-1">Smart Museum</p>
+            <p className="text-white/50 text-sm">Sistem Interaktif Galeri AR</p>
+          </div>
+
+          <Link
+            href="/scan"
+            className="group flex items-center gap-3 px-6 py-3 rounded-full border border-white/15 hover:border-white/40 text-white/60 hover:text-white transition-all text-sm font-medium hover:bg-white/5"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            Kembali ke Scanner
+          </Link>
+        </div>
+      </article>
+    </main>
   );
 }

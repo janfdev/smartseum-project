@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import ShinyText from "../ShinyText";
 import { AnimatedThemeToggler } from "./animated-theme-toggler";
 
 export default function Navbar() {
@@ -16,20 +15,7 @@ export default function Navbar() {
       <div className="px-4 md:px-12 lg:px-24">
         <div className="flex items-center justify-between py-4 sm:py-6">
           {/* Logo / Brand */}
-          <h2 className="text-2xl font-medium">
-            <ShinyText
-              text="SmartSeum"
-              speed={2}
-              delay={0}
-              color="#b5b5b5"
-              shineColor="#000000"
-              spread={120}
-              direction="left"
-              yoyo={false}
-              pauseOnHover={false}
-              disabled={false}
-            />
-          </h2>
+          <h2 className="text-2xl font-medium">SmartSeum</h2>
 
           {/* Desktop Navigation (Pill) */}
           <div className="hidden md:flex items-center gap-1 px-1.5 py-1.5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-transparent shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] rounded-full transition-colors z-20">
