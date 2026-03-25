@@ -71,9 +71,11 @@ export default function MuseumSection() {
   if (!isLoaded) return null;
 
   return (
-    <section className="min-h-[90vh] bg-transparent text-black dark:text-white transition-colors relative flex items-center py-20 lg:py-32 overflow-hidden">
+    <section
+      id="interaktif"
+      className="min-h-[90vh] bg-transparent text-black dark:text-white transition-colors relative flex items-center py-20 lg:py-32 overflow-hidden"
+    >
       <div className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-24 flex flex-col lg:flex-row items-center gap-16 lg:gap-24 relative z-10">
-        
         {/* Text Content Area (Restored to General Information) */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -93,7 +95,8 @@ export default function MuseumSection() {
               Interactive Experience
             </motion.p>
             <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter leading-[0.95] max-w-xl mx-auto lg:mx-0">
-              Jelajahi Dunia Melalui <span className="text-emerald-500">Lensa Digital.</span>
+              Jelajahi Dunia Melalui{" "}
+              <span className="text-emerald-500">Lensa Digital.</span>
             </h2>
           </div>
 
@@ -104,9 +107,9 @@ export default function MuseumSection() {
               viewport={{ once: true }}
               transition={{ delay: 0.5, duration: 0.8 }}
             >
-              Smartseum mengubah artefak statis menjadi pengalaman 3D yang hidup. 
-              Gunakan perangkat Anda untuk membedah setiap detail mahakarya sejarah 
-              secara interaktif.
+              Smartseum mengubah artefak statis menjadi pengalaman 3D yang
+              hidup. Gunakan perangkat Anda untuk membedah setiap detail
+              mahakarya sejarah secara interaktif.
             </motion.p>
             <motion.p
               initial={{ opacity: 0 }}
@@ -115,8 +118,8 @@ export default function MuseumSection() {
               transition={{ delay: 0.7, duration: 0.8 }}
               className="text-sm opacity-60"
             >
-              Sistem kami mengintegrasikan teknologi WebAR terkini untuk menghubungkan 
-              masa lalu dengan teknologi masa depan secara mulus.
+              Sistem kami mengintegrasikan teknologi WebAR terkini untuk
+              menghubungkan masa lalu dengan teknologi masa depan secara mulus.
             </motion.p>
           </div>
 
@@ -149,7 +152,6 @@ export default function MuseumSection() {
         >
           {/* Main Container with Viewfinder Borders */}
           <div className="w-full h-full relative z-10 rounded-[2.5rem] border border-white/10 bg-black/20 backdrop-blur-sm overflow-hidden shadow-2xl flex items-center justify-center group">
-            
             {/* Viewfinder Corners */}
             <div className="absolute top-8 left-8 w-8 h-8 border-t-2 border-l-2 border-emerald-500/50 rounded-tl-lg" />
             <div className="absolute top-8 right-8 w-8 h-8 border-t-2 border-r-2 border-emerald-500/50 rounded-tr-lg" />
@@ -157,7 +159,7 @@ export default function MuseumSection() {
             <div className="absolute bottom-8 right-8 w-8 h-8 border-b-2 border-r-2 border-emerald-500/50 rounded-br-lg" />
 
             {/* Scanning Line Animation (Back and forth) */}
-            <motion.div 
+            <motion.div
               className="absolute left-0 right-0 h-px bg-emerald-500/30 z-20 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
               animate={{ top: ["15%", "85%", "15%"] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -175,38 +177,50 @@ export default function MuseumSection() {
                 environment-image="neutral"
                 exposure="1"
                 min-camera-orbit="auto auto 0m"
-                style={{ width: "100%", height: "100%", outline: "none", filter: "drop-shadow(0 0 20px rgba(16,185,129,0.1))" }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  outline: "none",
+                  filter: "drop-shadow(0 0 20px rgba(16,185,129,0.1))",
+                }}
               ></model-viewer>
             ) : (
               <div className="flex flex-col items-center justify-center text-emerald-500/40 font-mono text-sm space-y-4">
                 <div className="w-16 h-16 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-                <p className="tracking-widest uppercase animate-pulse">Menganalisis Sinyal...</p>
+                <p className="tracking-widest uppercase animate-pulse">
+                  Menganalisis Sinyal...
+                </p>
               </div>
             )}
 
             {/* Floating Info Card (Glassmorphism Overlay) */}
             {latestItem && (
-               <motion.div 
-                 initial={{ opacity: 0, x: 20 }}
-                 whileInView={{ opacity: 1, x: 0 }}
-                 transition={{ delay: 1, duration: 0.8 }}
-                 className="absolute bottom-10 right-10 left-10 lg:left-auto lg:w-72 z-30 p-5 bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl pointer-events-auto"
-               >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <p className="text-emerald-400 text-[10px] font-bold uppercase tracking-[0.2em]">Target Terkunci</p>
-                  </div>
-                  <h3 className="text-white text-lg font-bold mb-1 line-clamp-1">{latestItem.title}</h3>
-                  <p className="text-white/50 text-xs mb-4 line-clamp-2 leading-relaxed font-light">
-                    {latestItem.description || "Struktur geometri artefak berhasil di-render dalam mode 3D volumetrik."}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1, duration: 0.8 }}
+                className="absolute bottom-10 right-10 left-10 lg:left-auto lg:w-72 z-30 p-5 bg-white/5 border border-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl pointer-events-auto"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <p className="text-emerald-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+                    Target Terkunci
                   </p>
-                  <Link 
-                    href={`/item/${latestItem.id}`}
-                    className="w-full h-9 flex items-center justify-center bg-white text-black rounded-xl text-xs font-bold hover:bg-emerald-500 hover:text-white transition-all duration-300"
-                  >
-                    Buka Riwayat Penuh
-                  </Link>
-               </motion.div>
+                </div>
+                <h3 className="text-white text-lg font-bold mb-1 line-clamp-1">
+                  {latestItem.title}
+                </h3>
+                <p className="text-white/50 text-xs mb-4 line-clamp-2 leading-relaxed font-light">
+                  {latestItem.description ||
+                    "Struktur geometri artefak berhasil di-render dalam mode 3D volumetrik."}
+                </p>
+                <Link
+                  href={`/item/${latestItem.id}`}
+                  className="w-full h-9 flex items-center justify-center bg-white text-black rounded-xl text-xs font-bold hover:bg-emerald-500 hover:text-white transition-all duration-300"
+                >
+                  Buka Riwayat Penuh
+                </Link>
+              </motion.div>
             )}
 
             {/* Interaction Hint */}

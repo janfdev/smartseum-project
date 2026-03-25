@@ -22,34 +22,34 @@ type FooterSection = {
 
 const footerLinks: FooterSection[] = [
   {
-    label: "Product",
+    label: "Jelajahi",
     links: [
-      { title: "Features", href: "#" },
-      { title: "Pricing", href: "#" },
-      { title: "Testimonials", href: "#" },
-      { title: "Integration", href: "#" },
+      { title: "Beranda", href: "/#beranda" },
+      { title: "Fitur", href: "/#fitur" },
+      { title: "Interaktif", href: "/#interaktif" },
+      { title: "Scan AR", href: "/scan" },
     ],
   },
   {
-    label: "Company",
+    label: "Tentang",
     links: [
-      { title: "FAQs", href: "#" },
-      { title: "About Us", href: "#" },
-      { title: "Privacy Policy", href: "#" },
-      { title: "T&S", href: "#" },
+      { title: "Tentang SmartSeum", href: "#" },
+      { title: "Kebijakan Privasi", href: "#" },
+      { title: "Syarat & Ketentuan", href: "#" },
+      { title: "FAQ", href: "#" },
     ],
   },
   {
-    label: "Resources",
+    label: "Bantuan",
     links: [
-      { title: "Blog", href: "#" },
-      { title: "Changelog", href: "#" },
-      { title: "Brand", href: "#" },
-      { title: "Help", href: "#" },
+      { title: "Panduan Penggunaan AR", href: "#" },
+      { title: "Hubungi Kami", href: "#" },
+      { title: "Blog & Artikel", href: "#" },
+      { title: "Pusat Bantuan", href: "#" },
     ],
   },
   {
-    label: "Social Links",
+    label: "Sosial Media",
     links: [
       {
         title: "Facebook",
@@ -91,7 +91,7 @@ export function Footer() {
             SmartSeum
           </h1>
           <p className="mt-8 text-muted-foreground text-sm md:mt-0">
-            Beautify your app with efferd.
+            Jembatan antara masa lalu dan masa depan. Temukan keajaiban artefak sejarah melalui teknologi WebAR tercanggih.
           </p>
         </AnimatedContainer>
 
@@ -124,7 +124,7 @@ export function Footer() {
       <div className="h-px w-full bg-linear-to-r via-border" />
       <div className="flex w-full items-center justify-center py-4">
         <p className="text-muted-foreground text-sm">
-          &copy; {new Date().getFullYear()} efferd, All rights reserved
+          &copy; {new Date().getFullYear()} SmartSeum. Hak Cipta Dilindungi Undang-Undang.
         </p>
       </div>
     </footer>

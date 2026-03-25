@@ -19,11 +19,14 @@ import {
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 export const NAV_ITEMS = [
-  { label: "Dashboard",     href: "/admin/dashboard",  icon: LayoutDashboard, soon: false },
-  { label: "Artefak & QR", href: "/admin/items",       icon: QrCode,          soon: false },
-  { label: "Landing Page",  href: "/admin/landing",    icon: MonitorPlay,     soon: true  },
-  { label: "Kategori",      href: "/admin/categories", icon: Layers,          soon: true  },
-  { label: "Pengguna",      href: "/admin/users",      icon: Users,           soon: false },
+  {
+    label: "Dashboard",
+    href: "/admin/dashboard",
+    icon: LayoutDashboard,
+    soon: false,
+  },
+  { label: "Artefak & QR", href: "/admin/items", icon: QrCode, soon: false },
+  { label: "Pengguna", href: "/admin/users", icon: Users, soon: false },
 ];
 
 /* ─── Collapsed-sidebar state shared via prop ─── */
@@ -57,7 +60,8 @@ export function AdminSidebar({ open }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 py-3 px-2 space-y-0.5">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
+          const active =
+            pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
 
           return (
@@ -72,8 +76,8 @@ export function AdminSidebar({ open }: SidebarProps) {
                   active
                     ? "bg-blue-50 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400"
                     : item.soon
-                    ? "text-neutral-400 dark:text-white/25 hover:bg-neutral-50 dark:hover:bg-white/4 cursor-not-allowed"
-                    : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-white/50 dark:hover:text-white/80 dark:hover:bg-white/6",
+                      ? "text-neutral-400 dark:text-white/25 hover:bg-neutral-50 dark:hover:bg-white/4 cursor-not-allowed"
+                      : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-white/50 dark:hover:text-white/80 dark:hover:bg-white/6",
                 ].join(" ")}
               >
                 <Icon className="w-[18px] h-[18px] flex-shrink-0" />
@@ -92,7 +96,9 @@ export function AdminSidebar({ open }: SidebarProps) {
                   <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rotate-45 bg-white border-l border-b border-neutral-200 dark:bg-[#1e1e1e] dark:border-white/10" />
                   {/* Bubble */}
                   <div className="flex items-center gap-2 bg-white border border-neutral-200 dark:bg-[#1e1e1e] dark:border-white/10 shadow-xl rounded-xl px-3 py-2 whitespace-nowrap">
-                    <span className="text-sm font-medium text-neutral-900 dark:text-white/85">{item.label}</span>
+                    <span className="text-sm font-medium text-neutral-900 dark:text-white/85">
+                      {item.label}
+                    </span>
                     {item.soon && (
                       <span className="text-[9px] font-bold uppercase tracking-widest text-amber-600 bg-amber-100 border border-amber-200 dark:text-amber-400 dark:bg-amber-400/10 dark:border-amber-400/20 px-1.5 py-0.5 rounded leading-none">
                         Soon
@@ -123,7 +129,9 @@ export function AdminSidebar({ open }: SidebarProps) {
             <div className="absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 z-[999] pointer-events-none select-none opacity-0 group-hover/nav:opacity-100 transition-opacity duration-150">
               <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rotate-45 bg-white border-l border-b border-neutral-200 dark:bg-[#1e1e1e] dark:border-white/10" />
               <div className="bg-white border border-neutral-200 dark:bg-[#1e1e1e] dark:border-white/10 shadow-xl rounded-xl px-3 py-2 whitespace-nowrap">
-                <span className="text-sm font-medium text-neutral-900 dark:text-white/85">Kembali ke Site</span>
+                <span className="text-sm font-medium text-neutral-900 dark:text-white/85">
+                  Kembali ke Site
+                </span>
               </div>
             </div>
           )}
@@ -143,32 +151,42 @@ interface TopbarProps {
   onToggleSidebar: () => void;
 }
 
-export function AdminTopbar({ user, sidebarOpen, onToggleSidebar }: TopbarProps) {
+export function AdminTopbar({
+  user,
+  sidebarOpen,
+  onToggleSidebar,
+}: TopbarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const currentPage = NAV_ITEMS.find(
-    (n) => pathname === n.href || pathname.startsWith(n.href + "/")
+    (n) => pathname === n.href || pathname.startsWith(n.href + "/"),
   );
 
   const userInitials = user?.name
-    ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? user.name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "A";
 
   return (
     <>
       <header className="sticky top-0 z-20 h-14 flex items-center px-4 gap-3 bg-white/80 dark:bg-[#0d0d0d]/80 backdrop-blur-xl border-b border-neutral-200 dark:border-white/6 flex-shrink-0">
-
         {/* Sidebar toggle — visible on desktop */}
         <button
           onClick={onToggleSidebar}
           className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-white/40 dark:hover:text-white/80 dark:hover:bg-white/8 transition-all"
           title={sidebarOpen ? "Tutup sidebar" : "Buka sidebar"}
         >
-          {sidebarOpen
-            ? <PanelLeftClose className="w-4 h-4" />
-            : <PanelLeftOpen className="w-4 h-4" />}
+          {sidebarOpen ? (
+            <PanelLeftClose className="w-4 h-4" />
+          ) : (
+            <PanelLeftOpen className="w-4 h-4" />
+          )}
         </button>
 
         {/* Mobile hamburger */}
@@ -188,7 +206,9 @@ export function AdminTopbar({ user, sidebarOpen, onToggleSidebar }: TopbarProps)
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-medium text-emerald-400">Live</span>
+            <span className="text-[11px] font-medium text-emerald-400">
+              Live
+            </span>
           </div>
 
           {/* Theme toggler */}
@@ -201,7 +221,11 @@ export function AdminTopbar({ user, sidebarOpen, onToggleSidebar }: TopbarProps)
               className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center select-none overflow-hidden border-2 border-transparent hover:border-blue-200 dark:hover:border-blue-500/30 transition-all"
             >
               {user?.image ? (
-                <img src={user.image} alt="User Avatar" className="w-full h-full object-cover" />
+                <img
+                  src={user.image}
+                  alt="User Avatar"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 userInitials
               )}
@@ -245,14 +269,22 @@ export function AdminTopbar({ user, sidebarOpen, onToggleSidebar }: TopbarProps)
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+          />
           <nav className="relative w-60 h-full bg-white dark:bg-[#111] flex flex-col border-r border-neutral-200 dark:border-white/6">
             <div className="flex items-center gap-2.5 px-4 h-14 border-b border-neutral-200 dark:border-white/6">
               <div className="w-7 h-7 rounded-xl bg-blue-600 flex items-center justify-center">
                 <Box className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="font-bold text-neutral-900 dark:text-white text-sm tracking-tight flex-1">SmartSeum</span>
-              <button onClick={() => setMobileOpen(false)} className="text-neutral-500 hover:text-neutral-900 dark:text-white/30 dark:hover:text-white">
+              <span className="font-bold text-neutral-900 dark:text-white text-sm tracking-tight flex-1">
+                SmartSeum
+              </span>
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="text-neutral-500 hover:text-neutral-900 dark:text-white/30 dark:hover:text-white"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -264,12 +296,18 @@ export function AdminTopbar({ user, sidebarOpen, onToggleSidebar }: TopbarProps)
                   <Link
                     key={item.href}
                     href={item.soon ? "#" : item.href}
-                    onClick={item.soon ? (e) => e.preventDefault() : () => setMobileOpen(false)}
+                    onClick={
+                      item.soon
+                        ? (e) => e.preventDefault()
+                        : () => setMobileOpen(false)
+                    }
                     className={[
                       "flex items-center gap-3 h-9 px-3 rounded-xl text-sm font-medium transition-colors",
-                      active ? "bg-blue-50 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400"
-                             : item.soon ? "text-neutral-400 dark:text-white/25 cursor-not-allowed"
-                             : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-white/50 dark:hover:text-white/80 dark:hover:bg-white/6",
+                      active
+                        ? "bg-blue-50 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400"
+                        : item.soon
+                          ? "text-neutral-400 dark:text-white/25 cursor-not-allowed"
+                          : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-white/50 dark:hover:text-white/80 dark:hover:bg-white/6",
                     ].join(" ")}
                   >
                     <Icon className="w-4 h-4" />
@@ -284,7 +322,10 @@ export function AdminTopbar({ user, sidebarOpen, onToggleSidebar }: TopbarProps)
               })}
             </div>
             <div className="px-2 pb-3 pt-3 border-t border-neutral-200 dark:border-white/6">
-              <Link href="/" className="flex items-center gap-3 h-9 px-3 rounded-xl text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-white/30 dark:hover:text-white/60 dark:hover:bg-white/6 transition-colors">
+              <Link
+                href="/"
+                className="flex items-center gap-3 h-9 px-3 rounded-xl text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-white/30 dark:hover:text-white/60 dark:hover:bg-white/6 transition-colors"
+              >
                 <LogOut className="w-4 h-4" />
                 Kembali ke Site
               </Link>

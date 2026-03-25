@@ -29,13 +29,15 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetch("/api/items")
       .then((r) => r.json())
-      .then((d) => { if (d.items) setItems(d.items); })
+      .then((d) => {
+        if (d.items) setItems(d.items);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const withQR = items.filter((i) => i.qrCodeUrl).length;
   const recent = items.filter(
-    (i) => now - new Date(i.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+    (i) => now - new Date(i.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000,
   ).length;
 
   const stats = [
@@ -81,34 +83,21 @@ export default function AdminDashboardPage() {
       icon: <QrCode className="w-5 h-5 text-blue-400" />,
       cta: "Buka Manajemen",
     },
-    {
-      label: "Landing Page",
-      desc: "Edit tampilan halaman utama pameran.",
-      href: "#",
-      icon: <MonitorPlay className="w-5 h-5 text-indigo-400" />,
-      cta: "Segera Hadir",
-      disabled: true,
-    },
+
     {
       label: "Pengguna",
       desc: "Kelola hak akses uploader dan admin.",
-      href: "#",
+      href: "/admin/users",
       icon: <Users className="w-5 h-5 text-orange-400" />,
-      cta: "Segera Hadir",
-      disabled: true,
-    },
-    {
-      label: "Kategori Koleksi",
-      desc: "Buat grup tipe artefak seperti Fosil, Senjata, dll.",
-      href: "#",
-      icon: <Layers className="w-5 h-5 text-emerald-400" />,
-      cta: "Segera Hadir",
-      disabled: true,
+      cta: "Buka Manajemen",
+      disabled: false,
     },
   ];
 
   const formatDate = (iso: string) =>
-    new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(new Date(iso));
+    new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(
+      new Date(iso),
+    );
 
   return (
     <div className="p-6 md:p-8 space-y-8 min-h-full">
@@ -132,12 +121,18 @@ export default function AdminDashboardPage() {
             key={s.label}
             className="bg-white dark:bg-white/4 border border-neutral-200 dark:border-white/6 rounded-2xl p-5 flex flex-col gap-3 shadow-sm dark:shadow-none"
           >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.bg} ${s.color}`}>
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.bg} ${s.color}`}
+            >
               {s.icon}
             </div>
             <div>
-              <p className="text-2xl font-bold text-neutral-900 dark:text-white tabular-nums">{s.value}</p>
-              <p className="text-xs font-semibold text-neutral-500 mt-0.5">{s.label}</p>
+              <p className="text-2xl font-bold text-neutral-900 dark:text-white tabular-nums">
+                {s.value}
+              </p>
+              <p className="text-xs font-semibold text-neutral-500 mt-0.5">
+                {s.label}
+              </p>
               <p className="text-[10px] text-neutral-400 mt-1">{s.sub}</p>
             </div>
           </div>
@@ -147,7 +142,7 @@ export default function AdminDashboardPage() {
       {/* Two column: shortcuts + recent */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Shortcuts 2 col */}
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-1 gap-4">
           {shortcuts.map((s) => (
             <Link
               key={s.label}
@@ -161,11 +156,17 @@ export default function AdminDashboardPage() {
               <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-white/6 flex items-center justify-center mb-4">
                 {s.icon}
               </div>
-              <p className="font-semibold text-neutral-900 dark:text-white text-sm mb-1">{s.label}</p>
-              <p className="text-neutral-500 text-xs leading-relaxed mb-4 flex-1">{s.desc}</p>
+              <p className="font-semibold text-neutral-900 dark:text-white text-sm mb-1">
+                {s.label}
+              </p>
+              <p className="text-neutral-500 text-xs leading-relaxed mb-4 flex-1">
+                {s.desc}
+              </p>
               <div className="flex items-center text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:gap-2 gap-1.5 transition-all">
                 {s.cta}
-                {!s.disabled && <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />}
+                {!s.disabled && (
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                )}
               </div>
             </Link>
           ))}
@@ -174,8 +175,13 @@ export default function AdminDashboardPage() {
         {/* Recent 1 col */}
         <div className="bg-white dark:bg-white/4 border border-neutral-200 dark:border-white/6 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
           <div className="px-5 py-4 border-b border-neutral-100 dark:border-white/5 flex items-center justify-between">
-            <p className="text-sm font-semibold text-neutral-900 dark:text-white">Terbaru</p>
-            <Link href="/admin/items" className="text-[11px] text-blue-600 dark:text-blue-400 hover:text-blue-500 font-medium">
+            <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+              Terbaru
+            </p>
+            <Link
+              href="/admin/items"
+              className="text-[11px] text-blue-600 dark:text-blue-400 hover:text-blue-500 font-medium"
+            >
               Lihat semua →
             </Link>
           </div>
@@ -185,7 +191,9 @@ export default function AdminDashboardPage() {
                 <div className="w-5 h-5 border-2 border-neutral-200 dark:border-white/10 border-t-blue-500 rounded-full animate-spin" />
               </div>
             ) : items.length === 0 ? (
-              <p className="text-neutral-400 text-sm text-center py-10">Belum ada artefak</p>
+              <p className="text-neutral-400 text-sm text-center py-10">
+                Belum ada artefak
+              </p>
             ) : (
               items.slice(0, 6).map((item) => (
                 <Link
@@ -195,7 +203,11 @@ export default function AdminDashboardPage() {
                 >
                   <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-white/6 flex items-center justify-center shrink-0 overflow-hidden">
                     {item.qrCodeUrl ? (
-                      <img src={item.qrCodeUrl} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={item.qrCodeUrl}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <Box className="w-4 h-4 text-neutral-400 dark:text-white/30" />
                     )}
@@ -207,12 +219,15 @@ export default function AdminDashboardPage() {
                     <p className="text-[11px] text-neutral-400 mt-0.5 flex items-center gap-1">
                       {item.qrCodeUrl ? (
                         <>
-                          <CheckCircle2 className="w-3 h-3 text-emerald-500" /> QR Ready
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />{" "}
+                          QR Ready
                         </>
                       ) : (
                         <span className="text-amber-500">Tanpa QR</span>
                       )}
-                      <span className="text-neutral-300 dark:text-white/15 mx-1">·</span>
+                      <span className="text-neutral-300 dark:text-white/15 mx-1">
+                        ·
+                      </span>
                       {formatDate(item.createdAt)}
                     </p>
                   </div>
