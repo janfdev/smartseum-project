@@ -19,6 +19,8 @@ export const metadata: Metadata = {
     "Aplikasi Simulasi Museum interaktif berbantuan QR Code dan 3D Viewer berbasis web.",
 };
 
+import Providers from "@/components/ui/Providers";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,7 +37,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="min-h-screen bg-white text-black font-sans m-0 p-0 antialiased overflow-x-hidden dark:bg-neutral-950 dark:text-white transition-colors">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

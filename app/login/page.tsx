@@ -31,8 +31,11 @@ function GoogleIcon() {
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  OAuthCallback: "Terjadi kesalahan saat login. Coba lagi.",
-  default: "Terjadi kesalahan. Silakan coba lagi.",
+  OAuthCallback: "Terjadi kesalahan saat login dengan Google. Silakan coba lagi.",
+  Configuration: "Terdapat kesalahan konfigurasi di server. Hubungi Admin.",
+  AccessDenied: "Akses Anda ditolak.",
+  CredentialsSignin: "Email atau kata sandi tidak sesuai.",
+  default: "Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.",
 };
 
 function LoginContent() {
@@ -41,13 +44,21 @@ function LoginContent() {
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
   const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
 
-  const errorMsg = errorParam
-    ? (ERROR_MESSAGES[errorParam] ?? ERROR_MESSAGES.default)
-    : null;
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Jika error datang dari backend (signIn credentials) berupa pesan langsung
+  // atau kalau query string mengandung pesan custom, tampilkan mentah-mentah.
+  // Bila kodenya standar NextAuth (ex: OAuthCallback), terjemahkan ke Bahasa Indonesia.
+  let errorMsg = loginError;
+  if (!errorMsg && errorParam) {
+    errorMsg = ERROR_MESSAGES[errorParam] ?? errorParam;
+  }
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    setLoginError(null);
     try {
       await signIn("google", { callbackUrl });
     } catch {
@@ -55,19 +66,29 @@ function LoginContent() {
     }
   };
 
+  const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setEmailLoading(true);
+    setLoginError(null);
+    const email = e.currentTarget.email.value;
+    const password = e.currentTarget.password.value;
+    try {
+      const res = await signIn("credentials", { email, password, redirect: false });
+      if (res?.error) {
+        setLoginError(res.error);
+      } else if (res?.ok) {
+        window.location.href = callbackUrl;
+      }
+    } catch {
+      setLoginError("Terjadi kesalahan koneksi.");
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Logo + branding */}
       <div className="flex flex-col items-center mb-10 text-center">
-        {/* Logo mark */}
-
-        {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 backdrop-blur-md rounded-full mb-4">
-          <UserCircle2 className="w-3 h-3 text-emerald-500" />
-          <span className="text-[10px] font-bold tracking-[0.25em] uppercase text-black/50 dark:text-white/50">
-            Member Portal
-          </span>
-        </div> */}
-
         <h1 className="text-3xl sm:text-4xl font-black tracking-tighter text-black dark:text-white leading-tight">
           SMARTSEUM{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-violet-500 italic pr-2">
@@ -79,31 +100,63 @@ function LoginContent() {
         </p>
       </div>
 
-      {/* Error banner */}
       {errorMsg && (
         <div className="flex items-start gap-3 px-4 py-3.5 mb-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm animate-in slide-in-from-top-2 duration-200">
           <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
           <p>{errorMsg}</p>
         </div>
       )}
+      
+      {searchParams.get("verified") && (
+        <div className="flex items-start gap-3 px-4 py-3.5 mb-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm animate-in slide-in-from-top-2 duration-200">
+          <p>Email berhasil diverifikasi! Silakan login.</p>
+        </div>
+      )}
 
-      {/* Glassmorphic card */}
       <div className="relative bg-black/[0.03] dark:bg-white/[0.03] border border-black/10 dark:border-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl shadow-black/5 dark:shadow-black/30">
-        {/* Inner top accent line */}
         <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
 
-        <div className="space-y-5">
-          {/* Description */}
-          <div className="text-center pb-2">
-            <p className="text-xs text-black/40 dark:text-white/40 leading-relaxed font-medium">
-              Gunakan akun Google Anda untuk melanjutkan.
-            </p>
-          </div>
+        <div className="space-y-6">
+          <form onSubmit={handleEmailLogin} className="space-y-4">
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold tracking-widest uppercase text-black/40 dark:text-white/40 ml-1">
+                  Alamat Email
+                </label>
+                <input 
+                  name="email" 
+                  type="email" 
+                  required 
+                  placeholder="nama@email.com" 
+                  className="w-full h-12 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold tracking-widest uppercase text-black/40 dark:text-white/40 ml-1">
+                  Kata Sandi
+                </label>
+                <input 
+                  name="password" 
+                  type="password" 
+                  required 
+                  placeholder="••••••••" 
+                  className="w-full h-12 bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl px-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all font-medium"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={emailLoading}
+              className="w-full h-12 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-semibold text-sm transition-all hover:bg-black/80 dark:hover:bg-white/80 disabled:opacity-50"
+            >
+              {emailLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto text-white dark:text-black" /> : "Masuk"}
+            </button>
+          </form>
 
           <div className="relative flex items-center gap-3">
             <div className="flex-1 h-px bg-black/8 dark:bg-white/8" />
             <span className="text-[10px] text-black/25 dark:text-white/25 font-mono uppercase tracking-widest">
-              masuk dengan
+              atau
             </span>
             <div className="flex-1 h-px bg-black/8 dark:bg-white/8" />
           </div>
@@ -111,42 +164,27 @@ function LoginContent() {
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="
-              group relative w-full h-12 flex items-center justify-center gap-3
-              bg-white dark:bg-white/8
-              border border-black/10 dark:border-white/10
-              hover:border-emerald-500/40 dark:hover:border-emerald-500/30
-              hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5
-              rounded-2xl font-semibold text-sm
-              text-black/80 dark:text-white/80
-              transition-all duration-200
-              shadow-sm hover:shadow-md hover:shadow-emerald-500/10
-              disabled:opacity-50 disabled:cursor-not-allowed
-              active:scale-[0.99]
-            "
+            className="group relative w-full h-12 flex items-center justify-center gap-3 bg-white dark:bg-white/8 border border-black/10 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-emerald-500/30 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5 rounded-2xl font-semibold text-sm text-black/80 dark:text-white/80 transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-emerald-500/10 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
           >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
-            ) : (
-              <GoogleIcon />
-            )}
-            {loading ? "Menghubungkan…" : "Lanjutkan dengan Google"}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin text-emerald-500" /> : <GoogleIcon />}
+            {loading ? "Menghubungkan…" : "Masuk dengan Google"}
           </button>
 
-          <Link
-            href="/"
-            className="
-              w-full h-11 flex items-center justify-center gap-2
-              bg-transparent border border-black/8 dark:border-white/8
-              hover:bg-black/4 dark:hover:bg-white/4
-              rounded-2xl text-sm font-medium
-              text-black/40 dark:text-white/40
-              hover:text-black/60 dark:hover:text-white/60
-              transition-all duration-200
-            "
-          >
-            Kembali ke Beranda
-          </Link>
+          <div className="flex flex-col gap-2 mt-4">
+            <Link
+              href="/register"
+              className="w-full h-11 flex items-center justify-center gap-2 rounded-2xl text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all duration-200"
+            >
+              Belum punya akun? Daftar
+            </Link>
+            
+            <Link
+              href="/"
+              className="w-full h-11 flex items-center justify-center gap-2 bg-transparent border border-black/8 dark:border-white/8 hover:bg-black/4 dark:hover:bg-white/4 rounded-2xl text-sm font-medium text-black/40 dark:text-white/40 hover:text-black/60 dark:hover:text-white/60 transition-all duration-200"
+            >
+              Kembali ke Beranda
+            </Link>
+          </div>
         </div>
       </div>
 

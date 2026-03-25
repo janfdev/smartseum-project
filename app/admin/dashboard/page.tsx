@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   Box,
   QrCode,
@@ -22,6 +23,9 @@ type Item = {
 };
 
 export default function AdminDashboardPage() {
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role;
+
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [now] = useState(() => Date.now());
@@ -83,15 +87,18 @@ export default function AdminDashboardPage() {
       icon: <QrCode className="w-5 h-5 text-blue-400" />,
       cta: "Buka Manajemen",
     },
-
-    {
-      label: "Pengguna",
-      desc: "Kelola hak akses uploader dan admin.",
-      href: "/admin/users",
-      icon: <Users className="w-5 h-5 text-orange-400" />,
-      cta: "Buka Manajemen",
-      disabled: false,
-    },
+    ...(userRole === "admin"
+      ? [
+          {
+            label: "Pengguna",
+            desc: "Kelola hak akses uploader dan admin.",
+            href: "/admin/users",
+            icon: <Users className="w-5 h-5 text-orange-400" />,
+            cta: "Buka Manajemen",
+            disabled: false,
+          },
+        ]
+      : []),
   ];
 
   const formatDate = (iso: string) =>

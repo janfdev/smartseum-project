@@ -29,6 +29,27 @@
       "when": 1774204649968,
       "tag": "0003_slow_brood",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774416749623,
+      "tag": "0004_graceful_karma",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774417770855,
+      "tag": "0005_powerful_gwen_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774418113994,
+      "tag": "0006_fluffy_sphinx",
+      "breakpoints": true
     }
   ]
 }

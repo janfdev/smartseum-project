@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { ModelViewerAR } from "@/components/interaction/ModelViewerAR";
-import { ArrowRight, ScanLine, X, SwitchCamera } from "lucide-react";
+import { ArrowRight, ScanLine, X, SwitchCamera, Volume2, VolumeX } from "lucide-react";
 
 type ScannedItemType = {
   id: string;
@@ -24,6 +24,9 @@ export default function ScanPage() {
     "environment",
   );
 
+  // Audio state
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
   // For simulation
   const [simulationItems, setSimulationItems] = useState<ScannedItemType[]>([]);
 
@@ -42,6 +45,48 @@ export default function ScanPage() {
     };
     fetchSimulations();
   }, []);
+
+  // Web Speech API logic
+  useEffect(() => {
+    if (scannedItem && scannedItem.title) {
+      // Small timeout to allow the browser to switch contexts properly
+      const timer = setTimeout(() => {
+        playAudio(scannedItem);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+
+    return () => {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+    };
+  }, [scannedItem]);
+
+  const playAudio = (item: ScannedItemType) => {
+    window.speechSynthesis.cancel(); // Stop any current audio
+    const textToRead = `${item.title}. ${item.description || "Tinjau material struktur dalam 3D Viewer interaktif untuk mencari tahu rincian lebih lanjut soal artefak."}`;
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.lang = "id-ID";
+    
+    // Adjust speed and pitch for natural voice
+    utterance.rate = 1.0;
+    utterance.pitch = 1.1;
+
+    utterance.onstart = () => setIsPlayingAudio(true);
+    utterance.onend = () => setIsPlayingAudio(false);
+    utterance.onerror = () => setIsPlayingAudio(false);
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleAudio = () => {
+    if (isPlayingAudio) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+    } else if (scannedItem) {
+      playAudio(scannedItem);
+    }
+  };
 
   const captureCamera = () => {
     try {
@@ -111,9 +156,11 @@ export default function ScanPage() {
   };
 
   const closeAR = () => {
+    window.speechSynthesis.cancel();
     setScannedItem(null);
     setScannedId(null);
     setCapturedImage(null);
+    setIsPlayingAudio(false);
   };
 
   return (
@@ -176,12 +223,33 @@ export default function ScanPage() {
           {/* Custom Overlay Card for detail (Tiktok effect overlay) */}
           <div className="absolute w-full bottom-0 left-0 z-50 p-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none">
             <div className="w-full max-w-lg mx-auto bg-black/40 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-500 pointer-events-auto hover:bg-black/50 transition-colors">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">
-                  Objek Teridentifikasi
-                </p>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">
+                    Objek Teridentifikasi
+                  </p>
+                </div>
+                
+                {/* Audio Toggle Button */}
+                <button
+                  onClick={toggleAudio}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
+                    isPlayingAudio 
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 hover:bg-emerald-500/30' 
+                      : 'bg-white/10 text-white/70 border-white/20 hover:bg-white/20'
+                  }`}
+                  aria-label={isPlayingAudio ? "Matikan suara narator" : "Nyalakan suara narator"}
+                  title={isPlayingAudio ? "Berhenti mendengar" : "Dengarkan penjelasan"}
+                >
+                  {isPlayingAudio ? (
+                    <Volume2 className="w-4 h-4" />
+                  ) : (
+                    <VolumeX className="w-4 h-4 opacity-75" />
+                  )}
+                </button>
               </div>
+              
               <h2 className="text-white text-2xl font-bold tracking-tight mb-2 leading-tight">
                 {scannedItem.title}
               </h2>

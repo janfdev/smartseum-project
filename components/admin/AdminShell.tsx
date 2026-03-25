@@ -8,7 +8,7 @@ export function AdminShell({ children, user }: { children: React.ReactNode; user
 
   return (
     <div className="flex h-screen bg-neutral-100 dark:bg-[#0d0d0d] text-neutral-900 dark:text-white font-sans overflow-hidden transition-colors">
-      <AdminSidebar open={sidebarOpen} />
+      <AdminSidebar open={sidebarOpen} user={user} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <AdminTopbar
           user={user}

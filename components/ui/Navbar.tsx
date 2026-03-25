@@ -6,11 +6,17 @@ import { AnimatedThemeToggler } from "./animated-theme-toggler";
 import { Button } from "./button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function Navbar() {
   const [isActive, setIsActive] = useState(false);
   const [activeSection, setActiveSection] = useState("beranda");
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+
+  const userInitials = session?.user?.name
+    ? session.user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+    : "U";
 
   const handleClick = () => {
     setIsActive(!isActive);
@@ -77,6 +83,7 @@ export default function Navbar() {
 
           {/* Right Side: Theme & Mobile Toggle */}
           <div className="flex items-center gap-2 sm:gap-4 z-20">
+            {/* Theme toggler */}
             <AnimatedThemeToggler />
 
             <Link href={"/scan"}>
@@ -85,11 +92,32 @@ export default function Navbar() {
               </button>
             </Link>
 
-            <Link href={"/login"}>
-              <button className="px-5 py-2 text-[13px] font-semibold text-black dark:text-white bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors rounded-full border border-black/10 dark:border-white/10">
-                Masuk
-              </button>
-            </Link>
+            {status === "loading" ? (
+              <div className="w-10 h-10 rounded-full animate-pulse bg-black/10 dark:bg-white/10" />
+            ) : status === "authenticated" ? (
+              <Link href={"/admin/dashboard"}>
+                <button
+                  className="w-10 h-10 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center select-none overflow-hidden border-2 border-transparent hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-all shadow-md"
+                  title="Ke Dashboard"
+                >
+                  {session.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt="User Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    userInitials
+                  )}
+                </button>
+              </Link>
+            ) : (
+              <Link href={"/login"}>
+                <button className="px-5 py-2 text-[13px] font-semibold text-black dark:text-white bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors rounded-full border border-black/10 dark:border-white/10">
+                  Masuk
+                </button>
+              </Link>
+            )}
 
             {/* Mobile Navigation Toggle */}
             <button
@@ -137,11 +165,19 @@ export default function Navbar() {
             </button>
           </Link>
 
-          <Link href={"/login"} onClick={() => setIsActive(false)}>
-            <button className="w-full text-center px-4 py-3 text-base font-medium rounded-lg text-black dark:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 mt-1">
-              Masuk Akun
-            </button>
-          </Link>
+          {status === "authenticated" ? (
+            <Link href={"/admin/dashboard"} onClick={() => setIsActive(false)}>
+              <button className="w-full text-center flex items-center justify-center gap-2 px-4 py-3 text-base font-medium rounded-lg text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors mt-1">
+                Dashboard Control
+              </button>
+            </Link>
+          ) : (
+            <Link href={"/login"} onClick={() => setIsActive(false)}>
+              <button className="w-full text-center px-4 py-3 text-base font-medium rounded-lg text-black dark:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 mt-1">
+                Masuk Akun
+              </button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

@@ -31,10 +31,12 @@ export const NAV_ITEMS = [
 
 interface SidebarProps {
   open: boolean;
+  user?: any;
 }
 
-export function AdminSidebar({ open }: SidebarProps) {
+export function AdminSidebar({ open, user }: SidebarProps) {
   const pathname = usePathname();
+  const visibleNavItems = user?.role === "admin" ? NAV_ITEMS : NAV_ITEMS.filter(item => item.href !== "/admin/users");
 
   return (
     /* IMPORTANT: NO overflow-hidden here so tooltips can escape */
@@ -57,7 +59,7 @@ export function AdminSidebar({ open }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 py-3 px-2 space-y-0.5">
-        {NAV_ITEMS.map((item) => {
+        {visibleNavItems.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
@@ -158,7 +160,9 @@ export function AdminTopbar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const currentPage = NAV_ITEMS.find(
+  const visibleNavItems = user?.role === "admin" ? NAV_ITEMS : NAV_ITEMS.filter(item => item.href !== "/admin/users");
+
+  const currentPage = visibleNavItems.find(
     (n) => pathname === n.href || pathname.startsWith(n.href + "/"),
   );
 
@@ -287,7 +291,7 @@ export function AdminTopbar({
               </button>
             </div>
             <div className="flex-1 px-2 py-3 space-y-0.5">
-              {NAV_ITEMS.map((item) => {
+              {visibleNavItems.map((item) => {
                 const active = pathname === item.href;
                 const Icon = item.icon;
                 return (

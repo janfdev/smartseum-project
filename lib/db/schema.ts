@@ -20,9 +20,10 @@ export const userStatusEnum = pgEnum("user_status", ["pending", "active", "banne
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
+  name: text("name"),
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
+  password: text("password"),
   image: text("image"),
   role: userRoleEnum("role").default("uploader").notNull(),
   status: userStatusEnum("status").default("pending").notNull(),
@@ -64,6 +65,18 @@ export const sessions = pgTable("sessions", {
   expires: timestamp("expires", { mode: "date" }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const verificationTokens = pgTable(
+  "verificationToken",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
+  },
+  (vt) => ({
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+  })
+);
 
 // Items Table (for 3D models)
 export const items = pgTable("items", {

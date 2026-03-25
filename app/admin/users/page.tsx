@@ -49,7 +49,7 @@ export default function AdminUsersPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return users.filter((u) => {
-      const matchSearch = u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+      const matchSearch = (u.name || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q);
       const matchStatus = filterStatus === "all" || u.status === filterStatus;
       const matchRole   = filterRole   === "all" || u.role   === filterRole;
       return matchSearch && matchStatus && matchRole;
